@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tabuleiro em Rede</title>
+<link rel="icon" href="pieces/wn.svg">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- ============ Entrar ============ -->
+<section class="login" id="login" hidden>
+  <div class="login-box">
+    <div>
+      <h1><span>&#9822;&#xFE0E;</span> Tabuleiro em Rede</h1>
+      <p class="muted">Xadrez e damas entre as máquinas da sua rede.</p>
+    </div>
+    <div class="seg" id="loginMode">
+      <button type="button" class="on" data-v="login">Entrar</button>
+      <button type="button" data-v="register">Criar perfil</button>
+    </div>
+    <form id="loginForm" class="card">
+      <label class="field">Nome <input id="loginName" maxlength="20" autocomplete="username" required></label>
+      <label class="field">Senha <input id="loginPass" type="password" maxlength="64" autocomplete="current-password" required></label>
+      <p class="error" id="loginError"></p>
+      <button class="btn primary block" type="submit" id="loginSubmit">Entrar</button>
+    </form>
+    <div id="knownWrap" hidden>
+      <p class="section-title">Perfis nesta rede</p>
+      <div class="known" id="known"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Aplicativo ============ -->
+<div id="shell" hidden>
+  <header class="topbar">
+    <div class="brand" id="brand"><span class="mark">&#9822;&#xFE0E;</span><span class="txt">Tabuleiro em Rede</span></div>
+    <nav class="nav" id="nav">
+      <a data-v="inicio">Início</a>
+      <a data-v="jogar">Salas</a>
+      <a data-v="assistir">Assistir</a>
+      <a data-v="aprender">Aprender</a>
+      <a data-v="ranking">Ranking</a>
+      <a data-v="perfil">Perfil</a>
+      <a data-v="config"><span class="full">Configurações</span><span class="short">Ajustes</span></a>
+      <a data-v="admin" id="navAdmin" hidden>Admin</a>
+    </nav>
+    <div class="userchip" id="userchip"></div>
+  </header>
+  <div class="announce" id="announce" role="status" hidden></div>
+
+  <!-- Tela inicial: escolha do jogo -->
+  <main class="view" id="v-inicio" hidden></main>
+
+  <!-- Lobby -->
+  <main class="view" id="v-jogar" hidden>
+    <div class="lobby-head" id="lobbyHead"></div>
+    <div class="invites" id="invites"></div>
+    <div class="lobby">
+      <aside class="card create" id="createCard">
+        <h2>Nova partida</h2>
+        <div class="seg" id="fGame">
+          <button type="button" data-v="chess"><span class="glyph">&#9822;&#xFE0E;</span> Xadrez</button>
+          <button type="button" data-v="checkers"><span class="glyph">&#9899;&#xFE0E;</span> Damas</button>
+        </div>
+        <div>
+          <p class="section-title">Tempo</p>
+          <div class="tc-grid" id="fTc"></div>
+          <div class="custom-tc" id="fCustom" hidden>
+            <label class="field">Minutos <input id="fMin" type="number" min="0.5" max="180" step="0.5" value="10"></label>
+            <label class="field">Incremento (s) <input id="fInc" type="number" min="0" max="60" step="1" value="0"></label>
+          </div>
+        </div>
+        <div>
+          <p class="section-title">Sua cor</p>
+          <div class="seg" id="fColor">
+            <button type="button" data-v="w">Brancas</button>
+            <button type="button" data-v="r">Sortear</button>
+            <button type="button" data-v="b">Pretas</button>
+          </div>
+        </div>
+        <label class="switch"><span class="lbl">Vale ranking<small>Altera a pontuação Elo dos dois</small></span><input type="checkbox" id="fRated"><span class="tg"></span></label>
+        <label class="switch"><span class="lbl">Sala privada<small>Só entra quem tiver o link; depois de começar, todos podem assistir</small></span><input type="checkbox" id="fPrivate"><span class="tg"></span></label>
+        <label class="field">Nome da sala (opcional) <input id="fName" maxlength="40" placeholder="Ex.: Mesa do café"></label>
+        <button class="btn primary block" id="createRoom" type="button">Criar sala</button>
+        <hr style="border:0;border-top:1px solid var(--line);margin:4px 0">
+        <div>
+          <p class="section-title">Contra o computador · nível</p>
+          <div class="levels" id="fLevel"></div>
+        </div>
+        <button class="btn block" id="playBot" type="button">Jogar contra o computador</button>
+      </aside>
+
+      <div class="lobby-main">
+        <section>
+          <div class="list-head">
+            <h2>Salas</h2>
+            <div class="chips" id="roomFilter">
+              <button type="button" class="on" data-v="all">Todas</button>
+              <button type="button" data-v="chess">Xadrez</button>
+              <button type="button" data-v="checkers">Damas</button>
+            </div>
+          </div>
+          <div class="rooms" id="rooms"></div>
+        </section>
+        <div id="magRooms"></div>
+        <div id="ludoRooms"></div>
+        <div id="trucoRooms"></div>
+        <section class="card">
+          <p class="section-title">Jogadores online</p>
+          <div class="online" id="online"></div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <!-- Aprender -->
+  <main class="view" id="v-aprender" hidden></main>
+
+  <!-- Ranking -->
+  <main class="view" id="v-ranking" hidden>
+    <div class="rank-head">
+      <div>
+        <h1>Ranking</h1>
+        <p class="muted">Pontuação Elo das partidas que valem ranking. Todos começam com 1200; o "?" indica menos de 10 partidas.</p>
+      </div>
+      <div class="seg" id="rankGame" style="min-width:240px">
+        <button type="button" class="on" data-v="chess">Xadrez</button>
+        <button type="button" data-v="checkers">Damas</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table id="rankTable"></table></div>
+  </main>
+
+  <!-- Perfil -->
+  <main class="view" id="v-perfil" hidden></main>
+
+  <!-- Configurações -->
+  <main class="view" id="v-config" hidden></main>
+
+  <!-- Assistir -->
+  <main class="view" id="v-assistir" hidden></main>
+
+  <!-- Truco -->
+  <main class="view" id="v-truco" hidden></main>
+
+  <!-- Ludo -->
+  <main class="view" id="v-ludo" hidden></main>
+
+  <!-- Magnata -->
+  <main class="view" id="v-magnata" hidden></main>
+
+  <!-- Administração -->
+  <main class="view" id="v-admin" hidden></main>
+
+  <!-- Partida -->
+  <main class="view" id="v-game" hidden>
+    <div class="game">
+      <div class="board-col">
+        <div class="pbar" id="pTop"></div>
+        <div class="board-wrap">
+          <div id="board"></div>
+          <div class="result-overlay" id="result" hidden></div>
+        </div>
+        <div class="pbar" id="pBottom"></div>
+      </div>
+      <aside class="side">
+        <div class="game-head">
+          <h1 id="gTitle">Partida</h1>
+          <div class="tags" id="gTags"></div>
+        </div>
+        <div class="status" id="gStatus" aria-live="polite"></div>
+        <div id="gOffers"></div>
+        <div class="controls" id="gControls"></div>
+        <div id="gAnalysis"></div>
+        <div class="moves-box">
+          <div class="nav-btns">
+            <button type="button" id="navFirst" title="Início (Home)" aria-label="Início">&#x23EE;&#xFE0E;</button>
+            <button type="button" id="navPrev" title="Anterior (←)" aria-label="Lance anterior">&#x25C0;&#xFE0E;</button>
+            <button type="button" id="navNext" title="Próximo (→)" aria-label="Próximo lance">&#x25B6;&#xFE0E;</button>
+            <button type="button" id="navLast" title="Atual (End)" aria-label="Lance atual">&#x23ED;&#xFE0E;</button>
+            <button type="button" id="navFlip" title="Girar tabuleiro (F)" aria-label="Girar tabuleiro">&#x21C5;&#xFE0E;</button>
+          </div>
+          <div id="gViewing"></div>
+          <div class="moves" id="gMoves"></div>
+        </div>
+        <div class="chat" id="gChat">
+          <div class="chat-log" id="chatLog" aria-live="polite"></div>
+          <div class="quick" id="chatQuick"></div>
+          <form id="chatForm" autocomplete="off">
+            <input id="chatInput" maxlength="300" placeholder="Mensagem">
+            <button class="btn small" type="submit">Enviar</button>
+          </form>
+        </div>
+        <div id="gShare"></div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- Promoção -->
+<div class="modal" id="promo" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" style="width:min(360px,100%)">
+    <h2>Promover peão</h2>
+    <div class="promo-opts" id="promoOpts"></div>
+    <div class="row"><button class="btn" id="promoCancel" type="button">Cancelar</button></div>
+  </div>
+</div>
+
+<!-- Modal genérico -->
+<div class="modal" id="modal" hidden>
+  <div class="modal-box" role="dialog" aria-modal="true" id="modalBox"></div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script src="chess.js"></script>
+<script src="checkers.js"></script>
+<script src="board.js"></script>
+<script src="learn-lessons.js"></script>
+<script src="openings.js"></script>
+<script src="magnata.js"></script>
+<script src="magnata-ui.js"></script>
+<script src="ludo.js"></script>
+<script src="ludo-ui.js"></script>
+<script src="truco.js"></script>
+<script src="truco-ui.js"></script>
+<script src="admin.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

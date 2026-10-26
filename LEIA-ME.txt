@@ -1,0 +1,184 @@
+TABULEIRO EM REDE — Xadrez e Damas na rede local
+=================================================
+
+Requisito: Node.js 22.13 ou superior na máquina que vai ser o servidor (https://nodejs.org, versão LTS).
+O banco de dados SQLite já vem dentro do Node.
+Não precisa de npm install nem de internet.
+
+COMO RODAR
+1. Na sua máquina, abra o terminal nesta pasta e rode:
+       node server.js
+2. O terminal mostra os endereços, por exemplo:
+       Nesta máquina:  http://localhost:3000
+       Na rede:        http://192.168.0.15:3000
+3. Você abre o endereço "Nesta máquina"; as outras máquinas abrem o endereço "Na rede".
+4. Cada pessoa cria o seu perfil (nome + senha) na primeira vez.
+
+- Outra porta:  PORT=8080 node server.js   (Windows: set PORT=8080 && node server.js)
+- Se outra máquina não conectar, libere a porta 3000 no firewall do Windows
+  (na primeira execução ele costuma perguntar: marque "Redes privadas").
+- Tudo fica salvo no banco SQLite dados/tabuleiro.db (perfis, logins, sessões, salas, partidas,
+  ranking e progresso de aprendizado). Para zerar, apague a pasta "dados".
+- Para ver ou consultar o banco, abra dados/tabuleiro.db no programa gratuito DB Browser for SQLite
+  (https://sqlitebrowser.org). Tabelas: perfis, sessoes, salas, partidas.
+- Backup: com o servidor desligado, copie a pasta "dados".
+- Se você tinha a versão antiga (arquivos .json), eles são migrados para o banco sozinhos
+  na primeira execução e renomeados para .migrado.
+- ATENÇÃO ao extrair o zip no Windows: rode o comando na pasta que mostra server.js
+  (às vezes fica uma pasta dentro da outra: tabuleiro-em-rede\tabuleiro-em-rede).
+
+TELA INICIAL
+- Ao entrar, você escolhe o jogo: Xadrez, Damas, Magnata, Ludo ou Truco (Reversi, Trilha e Lig 4 aparecem
+  como "Em breve"). Cada cartão mostra quantas partidas estão ao vivo; "Continuar jogando" leva
+  direto às suas partidas abertas. O menu "Salas" mostra todas as salas de todos os jogos.
+
+PERFIL E CONFIGURAÇÕES
+- Login com nome e senha; as configurações e o ranking acompanham você em qualquer máquina.
+- Página de perfil: pontuação de xadrez e de damas, gráfico de evolução, vitórias/empates/
+  derrotas, confronto direto com quem está vendo e lista de partidas com replay.
+- Configurações: tema claro/escuro/automático, 6 cores de tabuleiro, 2 estilos de peça,
+  velocidade da animação, coordenadas, destaque do último lance, mostrar lances possíveis,
+  pré-lance, promoção automática para dama, confirmação de desistência, setas, chat,
+  sons e volume, aviso piscando na aba, cor do avatar, frase do perfil e troca de senha.
+
+RANKING
+- Elo separado para xadrez e damas. Todos começam com 1200.
+- Só partidas marcadas como "Vale ranking" contam. Partidas abortadas não contam.
+- O "?" indica pontuação provisória (menos de 10 partidas).
+
+PARTIDA
+- Mova clicando (origem e destino) ou arrastando a peça.
+- Pré-lance (xadrez): na vez do adversário, faça seu lance; ele é jogado sozinho se for legal.
+- Botão direito: setas e círculos no tabuleiro (Shift = vermelho, Alt = azul). Clique comum apaga.
+- Propor empate, pedir para voltar o lance, abortar (antes do 1º lance de cada lado),
+  desistir, dar +15 s ao adversário, revanche (cores trocadas) e placar da sala.
+- Se o adversário ficar desconectado por 30 s, você pode reivindicar vitória ou empate.
+- Navegue pelos lances com os botões ou com as setas ← → do teclado (F gira o tabuleiro).
+- Exportar em PGN (xadrez, abre no lichess/chess.com) ou PDN (damas).
+- Chat com frases rápidas; espectadores também podem assistir e conversar.
+- Desafie diretamente quem estiver online pela lista "Jogadores online".
+
+DAMAS (regras brasileiras / CBD)
+- Brancas começam. Pedra anda 1 casa para a frente e captura para a frente e para trás.
+- Captura é obrigatória e vale a lei da maioria (deve capturar o maior número de peças).
+- Dama anda e captura à distância, em qualquer diagonal.
+- As peças capturadas só saem no fim do lance; não se pode saltar a mesma peça duas vezes.
+- Pedra só vira dama se terminar o lance na última fileira.
+- Empate: 20 lances seguidos só com damas sem captura, repetição tripla, ou finais
+  de dama sozinha contra 2 peças (5 lances) ou 3 peças (12 lances) sem progresso.
+- Na captura com mais de um caminho, clique casa por casa; se o destino for único,
+  basta clicar direto nele.
+
+APRENDER (aba nova)
+- Trilha de xadrez em 8 módulos e 38 lições, do básico ao avançado:
+  1 Fundamentos (tabuleiro e movimento de cada peça) · 2 Regras especiais (roque, en passant,
+  promoção, xeque, mate, empates) · 3 Primeiros mates · 4 Princípios de abertura e armadilhas ·
+  5 Táticas (garfo, cravada, espeto, descoberto, mate abafado) · 6 Finais (quadrado, oposição,
+  Lucena, Philidor) · 7 Meio-jogo e estratégia · 8 Avançado (presente grego, cálculo, método).
+- Cada lição tem explicação e exercícios no tabuleiro (clicar na casa, achar o lance, dar
+  mate, jogar uma sequência ou assistir a uma demonstração), com dica e correção na hora.
+- O progresso fica salvo no perfil e aparece na página de perfil.
+- Biblioteca com 78 aberturas e variantes (abertas, semiabertas, fechadas, índias e flanco),
+  com ECO, nível, lances, ideias e armadilhas. Em cada uma: navegar pelos lances, treinar a
+  linha com as brancas ou com as pretas, copiar o PGN e jogar a partir dela contra o computador.
+
+CONTRA O COMPUTADOR
+- 6 níveis, para xadrez e damas. O computador roda no seu navegador.
+- Tem botão de dica, voltar lance livre, e a partida continua se você recarregar a página.
+- As partidas ficam no seu histórico, mas não contam para o ranking.
+
+ASSISTIR (aba nova) — todas as partidas são públicas
+- "Ao vivo agora": todas as partidas acontecendo, com o tabuleiro em miniatura: entre pessoas
+  (inclusive salas privadas, depois que começam), contra o computador e mesas de Magnata.
+  Clique para assistir em tempo real.
+- Partidas contra o computador também são transmitidas: o navegador de quem joga manda cada lance
+  para o servidor e qualquer um pode assistir. Elas aparecem também no lobby.
+- "Partidas terminadas": o histórico de todo mundo, com filtro (xadrez, damas, contra o computador)
+  e busca por jogador. Clique para revisar.
+
+REVISAR PARTIDA
+- Abra pela aba Assistir, pelo perfil ou pelo botão "Rever partida" no fim do jogo.
+- "Reproduzir" passa os lances sozinho; ← → navegam lance a lance.
+- "Analisar partida": o computador avalia cada lance (no seu navegador), marca imprecisões (?!),
+  erros (?) e capivaradas (??), mostra a precisão de cada jogador, um gráfico de vantagem
+  (clique nele para ir ao lance) e, nos lances ruins, o melhor lance com uma seta verde.
+
+TRUCO PAULISTA (2 ou 4 jogadores)
+- Na tela inicial, clique em Truco e depois em "Nova mesa". Com 2 é mano a mano; com 4 é em duplas.
+  Antes de começar, cada um escolhe o lugar: Dupla A ou Dupla B (parceiros ficam de frente).
+- Baralho de 40 cartas (sem 8, 9 e 10). A carta virada (vira) define a manilha: a seguinte na ordem
+  4 5 6 7 Q J K A 2 3. Manilhas pelo naipe: Zap (paus) > Copas > Espadilha > Pica-fumo (ouros).
+  Sem manilha, vale a ordem: 3 > 2 > A > K > J > Q > 7 > 6 > 5 > 4.
+- Cada mão vale 1 ponto e é melhor de 3 vazas. Na sua vez, peça TRUCO (3); os outros aceitam, correm ou
+  pedem SEIS; depois NOVE e DOZE. Quem corre entrega o valor que estava valendo.
+- Empate (cangou): na 1ª vaza, quem ganhar a 2ª leva; depois, vale quem ganhou a 1ª.
+- Depois da 1ª vaza dá para jogar carta coberta (virada para baixo, não vale nada, ninguém vê).
+- Mão de onze: a dupla com 11 pontos decide se joga (vale 3) ou corre (os outros ganham 1). Sem truco.
+  Se as duas têm 11 (mão de ferro), vale 1 e não tem truco.
+- Vence quem fizer 12 pontos. Cada um só vê as próprias cartas, inclusive quem está assistindo.
+
+LUDO (2 a 4 jogadores)
+- Na tela inicial, clique em Ludo e depois em "Nova mesa". Cada um escolhe sua cor (vermelho, verde,
+  amarelo ou azul) e quem criou a mesa clica em "Começar". A ordem é sorteada; o dado é sorteado pelo servidor.
+- Tire 6 para colocar uma peça em jogo. Tirar 6 dá outra jogada (três 6 seguidos perdem a vez).
+- Cair em cima de uma peça adversária a manda de volta para a base e dá outra jogada.
+  As casas com estrela são seguras: ali ninguém é capturado.
+- Depois da volta no tabuleiro, a peça entra na reta da sua cor; para chegar ao centro é preciso o número exato
+  (chegar também dá outra jogada). Vence quem levar as 4 peças ao centro.
+- Quando só existe uma jogada possível, ela é feita sozinha. Se houver escolha, as peças que podem andar ficam pulando: toque numa.
+- Se quem está na vez ficar desconectado por 60 s, os outros podem tirá-lo da partida.
+
+MAGNATA (2 a 8 jogadores, estilo Monopoly)
+- No lobby, em "Magnata", clique em "Nova mesa". Os outros entram pela lista ou pelo link da mesa.
+  Quem criou a mesa clica em "Começar partida" (mínimo 2 jogadores); a ordem é sorteada.
+- Antes de começar, cada um escolhe seu peão: 🚗 Carro, 🎩 Cartola, 🐶 Cachorro, 🚢 Navio,
+  🦖 Dino, 🐱 Gato, 🚀 Foguete ou 👑 Coroa (cada um com sua cor).
+- Visual de videogame: dados rolando, peão pulando casa por casa, dinheiro voando (+R$ / −R$),
+  selo com o peão do dono em cada propriedade, botões grandes no centro do tabuleiro,
+  placar com 👑 para quem lidera e quadradinhos das cores que cada um tem, e tela de vitória.
+- Valores no estilo do Banco Imobiliário moderno: todos começam com R$ 25.000 e recebem R$ 2.000 ao passar pelo Início. Os dados são sorteados pelo servidor.
+- Caiu numa propriedade sem dono: compre ou recuse. Com dono: pague o aluguel.
+  Com todas as propriedades de uma cor, o aluguel dobra e você pode construir casas (até 4) e hotel,
+  sempre por igual dentro da cor. Estações: R$ 250 a 2.000 conforme quantas tiver. Companhias: 40× ou 100× os dados.
+- Toque numa casa do tabuleiro para ver aluguéis e, se for sua, construir, vender ou hipotecar.
+- Cartas de Sorte e Cofre, prisão (dupla, fiança de R$ 500 ou carta), 3 duplas seguidas = prisão.
+- Trocas: proponha propriedades + dinheiro a outro jogador; ele aceita ou recusa.
+- Sem dinheiro para pagar: venda casas ou hipoteque; se não der, declare falência.
+- Duração: até sobrar um jogador, ou 20/30/50 rodadas (vence o maior patrimônio).
+- Se quem precisa jogar ficar desconectado por 60 s, os outros podem tirá-lo da partida.
+- Vitórias no Magnata aparecem no perfil (não alteram o ranking Elo).
+
+PAINEL DO ADMINISTRADOR (menu "Admin", só aparece para administradores)
+- Quem é administrador: o perfil mais antigo vira administrador sozinho se não houver nenhum.
+  Depois, pelo painel, você pode tornar outros perfis administradores. Também dá para fixar pelo
+  nome em "administradores" no seguranca.json (ex.: ["Vicente"]) e reiniciar o servidor.
+- Visão geral: perfis, quem está online, salas e mesas em andamento, partidas, sessões, memória e banco.
+- Aviso para todos: uma faixa no topo do site para todo mundo (ex.: "Torneio às 15h!").
+- Perfis: buscar, tornar/tirar administrador, suspender (desconecta e impede o login) e reativar,
+  desconectar de todas as máquinas, gerar senha temporária (para quem esqueceu) e apagar perfil.
+- Salas: ver todas as salas de xadrez/damas e mesas de Magnata, abrir e fechar.
+- Segurança: IPs bloqueados agora (com botão para desbloquear) e o registro de eventos (dados/seguranca.log).
+- As ações dos administradores ficam registradas no seguranca.log.
+
+SEGURANÇA
+Configurável em seguranca.json (reinicie o servidor depois de editar).
+- Só aceita máquinas da rede local por padrão (somenteRedeLocal). Para restringir mais,
+  coloque faixas em "permitirIPs" (ex.: "192.168.0.0/24"); para barrar alguém, em "bloquearIPs".
+- Limite de requisições por IP e por perfil (login, cadastro, salas, chat, lances, ações).
+  Quem exagera recebe "aguarde X s"; reincidência gera bloqueio de 5 min (dobra até 1 h).
+- Login: 5 senhas erradas bloqueiam o nome e o IP por 30 s, depois 1 min, 2 min... até 15 min.
+  Senha mínima de 6 caracteres para perfis novos. Senhas guardadas com scrypt + sal.
+- Sessões expiram após 30 dias sem uso; máximo de 10 por perfil; trocar a senha
+  desconecta as outras máquinas.
+- Conexões: corta conexões lentas (slowloris) em 10 s, limita conexões simultâneas por IP
+  e conexões de partida ao vivo por IP/perfil; corpo da requisição limitado a 16 KB.
+- Limites de uso: 5 salas abertas por perfil, 5 perfis novos por IP por dia, anti-flood no chat.
+- Cabeçalhos de segurança (CSP, anti-clickjacking, nosniff) e bloqueio de requisições
+  vindas de outros sites (CSRF).
+- Eventos suspeitos (logins errados, bloqueios, IPs recusados) ficam em dados/seguranca.log.
+- Limite real: isso protege contra uma ou poucas máquinas abusando. Um DDoS de verdade
+  (milhares de máquinas lotando a rede) só se barra fora do app, no roteador ou num
+  serviço como Cloudflare. Para abrir o jogo na internet, use HTTPS e um proxy na frente.
+
+CRÉDITOS
+- Peças de xadrez "cburnett" por Colin M.L. Burnett (licença GPLv2+ / BSD / CC BY-SA).

@@ -1,0 +1,52 @@
+{
+  "_ajuda": "somenteRedeLocal: aceita só IPs de rede local. permitirIPs/bloquearIPs aceitam IP ou faixa CIDR (ex.: 192.168.0.0/24). Limites: [quantidade, segundos].",
+  "somenteRedeLocal": false,
+  "permitirIPs": [],
+  "bloquearIPs": [],
+  "limites": {
+    "geral": [
+      400,
+      60
+    ],
+    "api": [
+      240,
+      60
+    ],
+    "login": [
+      10,
+      60
+    ],
+    "cadastro": [
+      3,
+      600
+    ],
+    "criarSala": [
+      8,
+      60
+    ],
+    "chat": [
+      12,
+      20
+    ],
+    "lance": [
+      90,
+      60
+    ],
+    "acao": [
+      40,
+      60
+    ]
+  },
+  "conexoesPorIP": 40,
+  "tempoRealPorIP": 12,
+  "tempoRealPorPerfil": 6,
+  "tempoRealTotal": 500,
+  "salasAbertasPorPerfil": 5,
+  "salasTotal": 300,
+  "perfisTotal": 500,
+  "perfisPorIPPorDia": 5,
+  "sessoesPorPerfil": 10,
+  "sessaoExpiraDias": 30,
+  "bloqueioMinutos": 5,
+  "administradores": ["Vicente"]
+}

@@ -19,12 +19,12 @@
     s.log.push({ t: text, ts: Date.now() });
     if (s.log.length > LOG_MAX) s.log.splice(0, s.log.length - LOG_MAX);
   }
-  // players: [{pid, name, pawn (índice da cor)}]
+  // players: [{pid, name, pawn (índice da cor = lado do tabuleiro), ink (cor RGB escolhida, opcional)}]
   function create(players) {
     return {
       players: players.map(p => {
         const c = p.pawn % 4;
-        return { pid: p.pid, name: p.name, c, color: PAWNS[c].color, icon: PAWNS[c].icon, pieces: [-1, -1, -1, -1], out: false };
+        return { pid: p.pid, name: p.name, c, color: p.ink || PAWNS[c].color, icon: PAWNS[c].icon, pieces: [-1, -1, -1, -1], out: false };
       }),
       turn: 0, phase: 'roll', dice: null, sixes: 0, moves: [], winner: null, rollN: 0, roller: null, last: null, log: []
     };

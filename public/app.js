@@ -171,7 +171,7 @@
   }
   function logoutLocal() {
     token = null; me = null; store.del('tr-token');
-    stopPolling(); G.close(); X.Magnata.close(); X.Ludo.close(); X.Truco.close(); X.Admin.leave();
+    stopPolling(); G.close(); X.Magnata.close(); X.Ludo.close(); X.Truco.close(); X.Cassino.leave(); X.Sugestoes.leave(); X.Admin.leave();
     showLogin();
   }
   async function logout() {
@@ -211,9 +211,13 @@
     if (!q.has('ludo')) X.Ludo.close();
     if (!q.has('truco')) X.Truco.close();
     if (q.get('v') !== 'admin') X.Admin.leave();
+    if (q.get('v') !== 'cassino') X.Cassino.leave();
+    if (q.get('v') !== 'sugestoes') X.Sugestoes.leave();
     if (q.has('magnata')) { showView('v-magnata', null); X.Magnata.open(q.get('magnata')); }
     else if (q.has('ludo')) { showView('v-ludo', null); X.Ludo.open(q.get('ludo')); }
     else if (q.has('truco')) { showView('v-truco', null); X.Truco.open(q.get('truco')); }
+    else if (q.get('v') === 'sugestoes') { showView('v-sugestoes', 'sugestoes'); X.Sugestoes.show(); }
+    else if (q.get('v') === 'cassino') { showView('v-cassino', 'cassino'); X.Cassino.show(q); }
     else if (q.get('v') === 'admin') { showView('v-admin', 'admin'); X.Admin.show(q); }
     else if (q.has('assistir')) { showView('v-game', null); G.open('watch', q.get('assistir')); }
     else if (q.get('v') === 'assistir') { showView('v-assistir', 'assistir'); Watch.show(); }
@@ -277,6 +281,7 @@
     { id: 'magnata', name: 'Magnata', icon: '🎩', players: '2 a 8 jogadores', desc: 'Compre imóveis, construa casas e hotéis e leve todo mundo à falência. Estilo Banco Imobiliário.', ready: true, color: '#c92a2a' },
     { id: 'ludo', name: 'Ludo', icon: '🎲', players: '2 a 4 jogadores', desc: 'Tire 6 para sair, dê a volta no tabuleiro e capture os adversários no caminho.', ready: true, color: '#1971c2' },
     { id: 'truco', name: 'Truco', icon: '🃏', players: '2 ou 4 jogadores', desc: 'Truco paulista com vira e manilha, mano a mano ou em duplas. TRUCO, ladrão!', ready: true, color: '#0b7285' },
+    { id: 'cassino', name: 'Cassino', icon: '🎰', players: 'Fichas de mentira', desc: 'Crash ao vivo com a galera, Mines, Double, Dice, Limbo e Plinko. Só diversão: nada vale dinheiro.', ready: true, color: '#9c36b5', go: { v: 'cassino' } },
     { id: 'reversi', name: 'Reversi', icon: '⚫', players: '2 jogadores', desc: 'Cerque as peças do adversário e vire-as para a sua cor.', ready: false, color: '#495057' },
     { id: 'trilha', name: 'Trilha', icon: '⭕', players: '2 jogadores', desc: 'Forme linhas de três para tirar as peças do outro.', ready: false, color: '#7048e8' },
     { id: 'velha', name: 'Lig 4', icon: '🔴', players: '2 jogadores', desc: 'Alinhe quatro fichas antes do adversário.', ready: false, color: '#e8590c' }
@@ -315,7 +320,7 @@
         mine.length ? h('div.home-continue', h('p.section-title', 'Continuar jogando'), h('div.hc-list', mine.map(m =>
           h('button.hc', { type: 'button', onclick: () => go(m.go) }, h('span.hc-icon', m.icon), h('span', h('b', m.name), h('small.muted', m.sub)), h('span.hc-go', '▶'))))) : null,
         h('div.game-grid', GAMES.map(g => h('button.game-card' + (g.ready ? '' : '.soon'), {
-          type: 'button', style: { '--gc': g.color }, disabled: !g.ready || null, onclick: () => go({ v: 'jogar', jogo: g.id })
+          type: 'button', style: { '--gc': g.color }, disabled: !g.ready || null, onclick: () => go(g.go || { v: 'jogar', jogo: g.id })
         },
           h('div.gc-art', h('span', g.icon)),
           h('div.gc-body',
@@ -326,7 +331,8 @@
         h('div.home-links',
           h('button.btn', { type: 'button', onclick: () => go({ v: 'assistir' }) }, '👀 Assistir partidas'),
           h('button.btn', { type: 'button', onclick: () => go({ v: 'aprender' }) }, '📚 Aprender xadrez'),
-          h('button.btn', { type: 'button', onclick: () => go({ v: 'ranking' }) }, '🏆 Ranking'))].filter(Boolean));
+          h('button.btn', { type: 'button', onclick: () => go({ v: 'ranking' }) }, '🏆 Ranking'),
+          h('button.btn', { type: 'button', onclick: () => go({ v: 'sugestoes' }) }, '💡 Sugerir um jogo'))].filter(Boolean));
     }
   };
 

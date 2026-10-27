@@ -226,6 +226,11 @@
       if (!this.built || !root.contains(this.boardEl)) this.build(root);
       $('#lTitle').textContent = d.name;
       $('#lTags').replaceChildren(...[h('span.pill', '🎲 Ludo'), d.private ? h('span.pill', 'Privada') : null, d.spectators ? h('span.pill', `👀 ${d.spectators} assistindo`) : null].filter(Boolean));
+      // Cor de cada lado: a escolhida por quem está nele, ou a padrão
+      for (let i = 0; i < 4; i++) {
+        const pl = this.s ? this.s.players.find(p => p.c === i) : d.seats.find(p => p.pawn === i);
+        this.boardEl.style.setProperty('--k' + i, (pl && (this.s ? pl.color : pl.ink)) || PAWNS[i].color);
+      }
       this.renderBoard();
       this.layoutTokens();
       this.renderControl();
@@ -238,12 +243,12 @@
       this.built = true;
       const b = h('div.lboard');
       // Bases
-      BASE.forEach(([r, c], i) => b.append(h('div.lbase', { style: { gridRow: `${r + 1} / span 6`, gridColumn: `${c + 1} / span 6`, '--c': PAWNS[i].color } },
+      BASE.forEach(([r, c], i) => b.append(h('div.lbase', { style: { gridRow: `${r + 1} / span 6`, gridColumn: `${c + 1} / span 6`, '--c': `var(--k${i})` } },
         h('div.lbase-in', SPOTS.map(() => h('span'))))));
       // Percurso
       this.pathEls = PATH.map(([r, c], i) => {
         const startOf = [0, 1, 2, 3].find(k => START(k) === i);
-        const el = h('div.lcell' + (startOf !== undefined ? '.start' : SAFE.has(i) ? '.safe' : ''), { style: { gridRow: r + 1, gridColumn: c + 1, '--c': startOf !== undefined ? PAWNS[startOf].color : null } },
+        const el = h('div.lcell' + (startOf !== undefined ? '.start' : SAFE.has(i) ? '.safe' : ''), { style: { gridRow: r + 1, gridColumn: c + 1, '--c': startOf !== undefined ? `var(--k${startOf})` : null } },
           startOf !== undefined ? '★' : SAFE.has(i) ? '☆' : null);
         b.append(el);
         return el;
@@ -251,7 +256,7 @@
       // Retas finais
       for (let c = 0; c < 4; c++) for (let k = 1; k <= 5; k++) {
         const [r, col] = HOMECOL[c](k);
-        b.append(h('div.lcell.home', { style: { gridRow: r + 1, gridColumn: col + 1, '--c': PAWNS[c].color } }));
+        b.append(h('div.lcell.home', { style: { gridRow: r + 1, gridColumn: col + 1, '--c': `var(--k${c})` } }));
       }
       // Centro
       b.append(h('div.lcenter', { style: { gridRow: '7 / span 3', gridColumn: '7 / span 3' } }));
@@ -316,14 +321,18 @@
       if (!s) {
         out.push(h('div.status', d.seats.length < 2 ? 'Esperando mais jogadores (mínimo 2, máximo 4).' : d.creator === T.me().id ? 'Quando todos estiverem na mesa, comece a partida.' : 'Esperando quem criou a mesa começar.'));
         if (d.joined) {
-          const mineC = (d.seats.find(p => p.id === T.me().id) || {}).pawn, taken = {};
+          const mySeat = d.seats.find(p => p.id === T.me().id) || {}, mineC = mySeat.pawn, taken = {};
           for (const p of d.seats) taken[p.pawn] = p;
           out.push(h('div.card.pawnpick', h('p.section-title', 'Escolha sua cor'),
             h('div.pawngrid', PAWNS.map((pw, i) => {
               const by = taken[i], isMine = i === mineC;
-              return h('button.pawnbtn' + (isMine ? '.on' : ''), { type: 'button', style: { '--c': pw.color }, disabled: (by && !isMine) || null,
+              return h('button.pawnbtn' + (isMine ? '.on' : ''), { type: 'button', style: { '--c': (by && by.ink) || pw.color }, disabled: (by && !isMine) || null,
                 onclick: () => api(`/magnata/${d.id}/pawn`, { pawn: i }).catch(errToast) }, h('span.em', ''), h('small', by && !isMine ? by.name : pw.name));
-            }))));
+            })),
+            h('label.inkpick', h('span.muted', 'Cor personalizada:'),
+              h('input', { type: 'color', value: mySeat.ink || (PAWNS[mineC] || PAWNS[0]).color,
+                onchange: e => api(`/magnata/${d.id}/pawn`, { pawn: mineC, ink: e.target.value }).catch(errToast) }),
+              mySeat.ink ? h('button.btn.small', { type: 'button', onclick: () => api(`/magnata/${d.id}/pawn`, { pawn: mineC, ink: null }).catch(errToast) }, 'Padrão') : null)));
         }
         const row = h('div.controls');
         if (!d.joined && d.seats.length < d.maxSeats) row.append(btn('Sentar à mesa', () => api(`/magnata/${d.id}/join`, {}).catch(errToast), '.primary'));
@@ -350,7 +359,7 @@
     renderPlayers() {
       const s = this.s, d = this.d, box = $('#lPlayers');
       if (!s) {
-        box.replaceChildren(...d.seats.map(p => h('div.hud-p', h('span.lc-dot.big' + (p.online ? '.on' : ''), { style: { '--c': (PAWNS[p.pawn] || {}).color } }),
+        box.replaceChildren(...d.seats.map(p => h('div.hud-p', h('span.lc-dot.big' + (p.online ? '.on' : ''), { style: { '--c': p.ink || (PAWNS[p.pawn] || {}).color } }),
           h('div.info', h('div.nm', p.name, p.id === d.creator ? h('span.hb', '⭐ anfitrião') : null), h('small', (PAWNS[p.pawn] || {}).name || '')))),
           ...Array.from({ length: d.maxSeats - d.seats.length }, () => h('div.hud-p.empty', h('span.lc-dot.big.ghost'), h('div.info', h('small', 'Lugar vago')))));
         return;

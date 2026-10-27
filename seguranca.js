@@ -23,7 +23,8 @@ const DEFAULTS = {
     criarSala: [8, 60],
     chat: [12, 20],
     lance: [90, 60],
-    acao: [40, 60]             // ofertas, desistir, +15 s etc.
+    acao: [40, 60],            // ofertas, desistir, +15 s etc.
+    cassino: [150, 60]         // apostas no cassino (por perfil)
   },
   conexoesPorIP: 40,           // conexões TCP simultâneas por IP
   tempoRealPorIP: 12,          // conexões de partida ao vivo por IP

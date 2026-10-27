@@ -34,6 +34,7 @@ function flush() {
   if (dirty.has('sessions')) banco.saveSessions(db.sessions);
   if (dirty.has('rooms')) banco.saveRooms(db.rooms);
   if (dirty.has('magnata')) banco.saveMagnata(db.magnata);
+  if (dirty.has('suggestions')) banco.saveSuggestions(db.suggestions);
   if (dirty.has('games')) {
     const novos = db.games.filter(g => !savedGames.has(g.id));
     banco.saveGames(novos);
@@ -984,7 +985,7 @@ function publicMag(room, pid) {
   for (const l of listeners[magKey(room.id)] || []) if (!room.seats.includes(l.pid)) spectators++;
   return {
     id: room.id, game: room.game || 'magnata', name: room.name, creator: room.creator, private: !!room.private, maxRounds: room.maxRounds, maxSeats: tg(room).seats,
-    seats: room.seats.map(id => ({ ...who(id), online: magOnline(room, id), pawn: magPawns(room)[id] })), state, chat: room.chat, spectators,
+    seats: room.seats.map(id => ({ ...who(id), online: magOnline(room, id), pawn: magPawns(room)[id], ink: (room.inks || {})[id] || null })), state, chat: room.chat, spectators,
     you: room.seats.includes(pid) ? magSeat(room, pid) : null, joined: room.seats.includes(pid),
     awayLimit: MAG_AWAY_MS, updated: room.updated, serverTime: now
   };
@@ -1105,6 +1106,13 @@ route('POST', '/api/magnata/:id/pawn', withMag(async (req, res, ctx) => {
   const pawns = magPawns(room);
   if (Object.entries(pawns).some(([pid, v]) => v === i && pid !== me.id)) return send(res, 409, { error: room.game === 'ludo' ? 'Outra pessoa já escolheu essa cor.' : 'Outra pessoa já escolheu esse peão.' });
   pawns[me.id] = i;
+  // Ludo: cor RGB livre (o índice continua definindo o lado do tabuleiro)
+  if (room.game === 'ludo' && ctx.body.ink !== undefined) {
+    room.inks = room.inks || {};
+    if (ctx.body.ink === null) delete room.inks[me.id];
+    else if (/^#[0-9a-f]{6}$/i.test(ctx.body.ink)) room.inks[me.id] = ctx.body.ink.toLowerCase();
+    else return send(res, 400, { error: 'Cor inválida.' });
+  }
   magChanged(room);
   send(res, 200, { ok: true });
 }));
@@ -1125,7 +1133,7 @@ route('POST', '/api/magnata/:id/start', withMag(async (req, res, ctx) => {
   if (!G_.fixedOrder) for (let i = order.length - 1; i > 0; i--) { const j = diceRng(i + 1); [order[i], order[j]] = [order[j], order[i]]; }
   const pawns = magPawns(room);
   const E = tg(room).E;
-  room.state = E.create(order.map(pid => { const pw = E.PAWNS[pawns[pid]]; return { pid, name: who(pid).name, color: pw.color, icon: pw.icon, pawn: pawns[pid] }; }), { maxRounds: room.maxRounds }, diceRng);
+  room.state = E.create(order.map(pid => { const pw = E.PAWNS[pawns[pid]]; return { pid, name: who(pid).name, color: pw.color, icon: pw.icon, pawn: pawns[pid], ink: (room.inks || {})[pid] }; }), { maxRounds: room.maxRounds }, diceRng);
   room.recorded = false;
   magSysMsg(room, `A partida começou! Ordem: ${order.map(pid => who(pid).name).join(', ')}.`);
   magChanged(room);
@@ -1313,10 +1321,17 @@ function bucketFor(method, pathname) {
   if (pathname === '/api/rooms' || pathname === '/api/magnata') return 'criarSala';
   if (pathname.endsWith('/chat')) return 'chat';
   if (pathname.endsWith('/move') || pathname.endsWith('/act') || pathname === '/api/bot/live') return 'lance';
+  if (pathname.startsWith('/api/cassino/')) return 'cassino';
+  if (pathname.startsWith('/api/sugestoes')) return pathname.endsWith('/comment') ? 'chat' : 'acao';
   if (pathname.startsWith('/api/rooms/') || pathname.startsWith('/api/magnata/') || pathname.startsWith('/api/admin/')) return 'acao';
   return null;
 }
 const ID_RE = /^[a-f0-9]{4,16}$/;
+
+/* ==================== Cassino (fichas de mentira) ==================== */
+require('./cassino.js').install({ route, send, db, saveProfiles, listeners, streamAllowed });
+/* ==================== Sugestões de jogos ==================== */
+require('./sugestoes.js').install({ route, send, db, save: () => mark('suggestions'), isAdmin, clean, rid });
 
 const server = http.createServer(async (req, res) => {
   const ip = SEC.normIp(req.socket.remoteAddress);

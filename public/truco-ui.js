@@ -6,13 +6,16 @@
   const { SUIT_ICON, MAN_NAME, RAISE_NAME, GOAL, PAWNS, power } = Truco;
   const RED = new Set(['h', 'd']);
   const POS = { 2: ['bottom', 'top'], 4: ['bottom', 'right', 'top', 'left'] };
+  const HOLD_MS = 2600;   // tempo que a vaza fechada fica na mesa para todos verem a última carta
+  const ORD = ['1ª', '2ª', '3ª'];
+  const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* sem armazenamento */ } } };
 
   // Carta desenhada (null = verso)
   function cardEl(c, opts = {}) {
     if (!c) return h('div.tcard.back' + (opts.cls || ''));
     const r = c[0], s = c[1], ic = SUIT_ICON[s] + '︎';   // ︎: naipe como texto, não emoji
     return h('div.tcard' + (RED.has(s) ? '.red' : '') + (opts.man ? '.man' : '') + (opts.cls || ''), { title: opts.title || null },
-      h('span.tc-r', r, h('small', ic)), h('span.tc-s', ic), h('span.tc-r.rot', r, h('small', ic)),
+      h('span.tc-r', r, h('small', ic)), 'QJK'.includes(r) ? h('span.tc-s.face', h('b', r), h('small', ic)) : h('span.tc-s', ic), h('span.tc-r.rot', r, h('small', ic)),
       opts.man ? h('span.tc-man', '★ ' + MAN_NAME[s]) : null);
   }
 
@@ -45,7 +48,7 @@
 
   /* ==================== Mesa ==================== */
   const G = {
-    id: null, d: null, es: null, active: false, seen: new Set(), lastPending: 0, lastHand: 0, covered: false, timers: [], notified: false,
+    id: null, d: null, es: null, active: false, seen: new Set(), lastPending: 0, lastHand: 0, covered: false, timers: [], notified: false, hold: null, hidden: store.get('truco.hide') === '1',
     get s() { return this.d && this.d.state; },
     get me() { return this.d && this.d.you !== null && this.d.you >= 0 ? this.d.you : null; },
     get view() { return this.me === null ? 0 : this.me; },   // de onde a mesa é vista (espectador vê do lugar 1)
@@ -69,7 +72,7 @@
       if (this.es) { this.es.close(); this.es = null; }
       clearInterval(this.tick); this.tick = null;
       this.timers.forEach(clearTimeout); this.timers = [];
-      this.id = null; this.d = null; this.built = false; this.seen = new Set();
+      this.id = null; this.d = null; this.built = false; this.seen = new Set(); this.hold = null;
     },
     later(ms, fn) { this.timers.push(setTimeout(() => { if (this.active) fn(); }, ms)); },
     connect(id) {
@@ -85,6 +88,13 @@
           catch (err) { toast('A mesa foi encerrada.'); go({ v: 'jogar', jogo: 'truco' }, true); }
         }, 3000);
       };
+      if (!this.keyBound) {
+        this.keyBound = true;
+        document.addEventListener('keydown', e => {
+          if (!this.active || !this.s || e.ctrlKey || e.metaKey || e.altKey || /INPUT|TEXTAREA/.test((e.target || {}).tagName || '')) return;
+          if (e.key === 'e' || e.key === 'E') this.toggleHide();
+        });
+      }
       clearInterval(this.tick);
       this.tick = setInterval(() => { if (this.s && this.s.waitingAwayMs) { this.s.waitingAwayMs += 1000; this.renderActions(); } }, 1000);
     },
@@ -106,6 +116,17 @@
         } else if (prev.phase === 'raise' && s.phase === 'play' && !s.pending && prev.handN === s.handN) {
           this.shout('CAI DENTRO!', `Vale ${s.value}`, 'ok'); Sound.play('start');
         }
+        // Vaza fechada: segura as cartas na mesa um pouco (senão a última carta some na hora)
+        let closed = null;
+        if (prev.handN === s.handN && s.tricks.length > prev.tricks.length) closed = { t: s.tricks[s.tricks.length - 1], i: s.tricks.length - 1, man: s.manilha };
+        else if (prev.handN !== s.handN && s.last && s.last.n !== this.lastHand) {
+          const i = s.last.tricks.length - 1, t = s.last.tricks[i];
+          if (t && t.plays.length) closed = { t, i, man: prev.manilha };
+        }
+        if (closed) {
+          this.hold = { ...closed, until: Date.now() + HOLD_MS };
+          this.later(HOLD_MS + 30, () => this.render());
+        }
         if (s.last && s.last.n !== this.lastHand) this.handResult(s.last, s);
         if (prev.plays.length < s.plays.length || prev.handN !== s.handN || prev.tricks.length !== s.tricks.length) Sound.play('card');
         if (prev.phase !== 'over' && s.phase === 'over') Sound.play(s.winner === this.myTeam() && this.me !== null ? 'win' : 'lose');
@@ -117,6 +138,13 @@
       document.title = (mine ? '● ' : '') + d.name + ' · Truco';
       this.render();
     },
+    holding() {
+      const hd = this.hold;
+      if (!hd || Date.now() >= hd.until || (this.s && this.s.plays.length)) { this.hold = null; return false; }
+      return true;
+    },
+    // Rótulo de uma dupla do ponto de vista de quem olha
+    teamLabel(t) { return this.me === null ? Truco.TEAM_NAME[t] : t === this.myTeam() ? 'NÓS' : 'ELES'; },
     needsMe() {
       const s = this.s, me = this.me;
       if (!s || me === null || s.phase === 'over') return false;
@@ -133,7 +161,7 @@
     handResult(last, s) {
       const mine = this.me !== null && last.team === this.myTeam();
       const label = this.me === null ? Truco.TEAM_NAME[last.team] : mine ? 'NÓS' : 'ELES';
-      this.later(700, () => {
+      this.later(this.holding() ? HOLD_MS - 300 : 700, () => {
         const el = h('div.tresult' + (this.me === null ? '' : mine ? '.win' : '.lose'), h('b', `${label} +${last.pts}`), h('span', last.why));
         this.table && this.table.append(el);
         Sound.play(mine ? 'coin' : 'pay');
@@ -151,6 +179,7 @@
       this.renderHand();
       this.renderActions();
       this.renderPlayers();
+      this.renderRounds();
       $('#tLog').replaceChildren(...(this.s ? this.s.log.slice(-40).reverse().map(l => h('div.mlogline', l.t)) : [h('p.muted', 'O jogo ainda não começou.')]));
       const log = $('#tChatLog'), atEnd = log.scrollHeight - log.scrollTop - log.clientHeight < 30;
       log.replaceChildren(...d.chat.map(m => m.n ? h('div.msg', h('b', m.n + ': '), m.t) : h('div.msg.sys', m.t)));
@@ -166,6 +195,7 @@
           h('div.game-head', h('h1#tTitle', ''), h('div.tags#tTags')),
           h('div#tActions'),
           h('div#tPlayers.mhud'),
+          h('div.card.trounds', h('p.section-title', 'Rodadas'), h('div#tRounds')),
           h('div.card.mlog', h('p.section-title', 'Acontecimentos'), h('div#tLog.mlogbox')),
           h('div.chat',
             h('div.chat-log#tChatLog', { 'aria-live': 'polite' }),
@@ -196,10 +226,12 @@
         h('div.ts-mid', h('span', `até ${GOAL}`), h('div.ts-val', s.pending ? `${RAISE_NAME[s.pending.to]}?` : `vale ${s.value}`)),
         h('div.ts-team', { style: { '--c': PAWNS[them].color } }, h('small', this.me === null ? 'DUPLA B' : 'ELES'), h('b', s.score[them]))));
       // Vazas da mão atual
-      kids.push(h('div.ttricks', [0, 1, 2].map(i => {
-        const t = s.tricks[i];
-        return h('i' + (!t ? '' : t.team === -1 ? '.tie' : t.team === us ? '.win' : '.lose'), { title: !t ? `Vaza ${i + 1}` : t.team === -1 ? 'Empate' : t.team === us ? 'Ganhou' : 'Perdeu' });
-      })));
+      kids.push(h('div.ttricks', h('small', `MÃO ${s.handN}`), h('div.tt-row', [0, 1, 2].map(i => {
+        const t = s.tricks[i], cur = !t && i === s.tricks.length && s.phase !== 'over';
+        const lbl = !t ? (cur ? 'agora' : '—') : t.team === -1 ? 'empate' : this.teamLabel(t.team);
+        return h('div.tt' + (!t ? (cur ? '.cur' : '') : t.team === -1 ? '.tie' : t.team === us ? '.win' : '.lose'),
+          { title: t && t.team !== -1 ? `${s.players[t.seat].name} fez a ${ORD[i]} vaza` : `${ORD[i]} vaza` }, h('b', ORD[i]), h('span', lbl));
+      }))));
       // Jogadores em volta da mesa
       s.players.forEach((p, i) => {
         const rel = (i - this.view + n) % n, side = pos[rel];
@@ -211,12 +243,19 @@
       // Vira e baralho
       kids.push(h('div.tdeck', h('div.tstack', cardEl(null), cardEl(null)), h('div.tvira', cardEl(s.vira), h('small', `VIRA · manilha ${s.manilha}`))));
       // Cartas na mesa (vaza atual)
-      const played = s.plays.length ? s.plays : [];
-      kids.push(h('div.tplays', played.map(pl => {
+      const hold = this.holding() ? this.hold : null;
+      const played = hold ? hold.t.plays : s.plays, man = hold ? hold.man : s.manilha;
+      kids.push(h('div.tplays' + (hold ? '.held' : ''), played.map(pl => {
         const rel = (pl.seat - this.view + n) % n, key = `${s.handN}-${s.tricks.length}-${pl.seat}`;
-        const fresh = !this.seen.has(key); this.seen.add(key);
-        return h('div.tplay.' + pos[rel] + (fresh ? '.fly' : ''), cardEl(pl.covered ? null : pl.card, { man: pl.card && pl.card[0] === s.manilha }));
+        const fresh = !hold && !this.seen.has(key); if (!hold) this.seen.add(key);
+        const best = hold && hold.t.team >= 0 && pl.seat === hold.t.seat;
+        return h('div.tplay.' + pos[rel] + (fresh ? '.fly' : '') + (best ? '.best' : hold ? '.dim' : ''),
+          cardEl(pl.covered ? null : pl.card, { man: pl.card && pl.card[0] === man }), h('span.tp-name', s.players[pl.seat].name));
       })));
+      if (hold) kids.push(h('div.tverdict' + (hold.t.team === -1 ? '.tie' : !(hold.t.team >= 0) ? '' : this.me === null || hold.t.team === my ? '.win' : '.lose'),
+        h('small', `${ORD[hold.i]} VAZA`),
+        h('b', hold.t.team === -1 ? 'CANGOU! (empate)' : !(hold.t.team >= 0) ? 'Mão encerrada' : `${s.players[hold.t.seat].name} levou`),
+        hold.t.team >= 0 ? h('span', this.teamLabel(hold.t.team)) : null));
       // Painéis no centro: pedido de truco, mão de onze, fim de jogo
       const panel = this.centerPanel();
       if (panel) kids.push(panel);
@@ -254,13 +293,16 @@
     renderHand() {
       const s = this.s, me = this.me, box = this.handEl;
       if (!s || me === null || s.phase === 'over') return box.replaceChildren();
-      const p = s.players[me], myTurn = s.phase === 'play' && s.turn === me;
+      const p = s.players[me], holding = this.holding(), myTurn = s.phase === 'play' && s.turn === me && !holding, hidden = this.hidden;
       const canCover = s.tricks.length > 0;
       if (!canCover) this.covered = false;
       const cards = p.hand.map((c, i) => {
-        const el = cardEl(c, { man: c[0] === s.manilha, cls: '.big' + (myTurn ? '.playable' : '') });
+        const el = cardEl(hidden ? null : c, { man: !hidden && c[0] === s.manilha, cls: '.big' + (myTurn && !hidden ? '.playable' : '') });
         el.style.setProperty('--i', i - (p.hand.length - 1) / 2);
-        el.onclick = () => { if (myTurn) this.act({ type: 'play', card: i, covered: this.covered }); };
+        el.onclick = () => {
+          if (hidden) return toast('Suas cartas estão escondidas. Toque em 👁 Mostrar cartas.');
+          if (myTurn) this.act({ type: 'play', card: i, covered: this.covered });
+        };
         return el;
       });
       // Pedir truco: na sua vez, se a sua dupla não foi a última a pedir
@@ -271,7 +313,13 @@
         h('div.th-btns',
           canRaise ? h('button.gbtn.red.truco' + (myTurn ? '.pulse' : ''), { type: 'button', onclick: () => this.act({ type: 'raise' }) }, `${RAISE_NAME[nextVal]}!`) : null,
           canCover && myTurn ? h('button.gbtn' + (this.covered ? '.go' : ''), { type: 'button', onclick: () => { this.covered = !this.covered; this.renderHand(); } }, this.covered ? '🂠 COBERTA: SIM' : '🂠 Jogar coberta') : null,
-          h('div.th-msg', myTurn ? (this.covered ? 'Toque na carta para jogá-la virada' : '👆 Sua vez: toque numa carta') : s.phase === 'play' ? `Vez de ${s.players[s.turn].name}` : '')));
+          h('button.gbtn.small' + (hidden ? '.go' : ''), { type: 'button', title: 'Esconde suas cartas da tela (atalho: E)', onclick: () => this.toggleHide() }, hidden ? '👁 Mostrar cartas' : '🙈 Esconder cartas'),
+          h('div.th-msg', holding ? 'Olhando a vaza…' : hidden && s.turn === me && s.phase === 'play' ? '🙈 Sua vez — mostre as cartas para jogar' : myTurn ? (this.covered ? 'Toque na carta para jogá-la virada' : '👆 Sua vez: toque numa carta') : s.phase === 'play' ? `Vez de ${s.players[s.turn].name}` : '')));
+    },
+    toggleHide() {
+      this.hidden = !this.hidden;
+      store.set('truco.hide', this.hidden ? '1' : '0');
+      this.renderHand();
     },
     renderActions() {
       const box = $('#tActions'), d = this.d, s = this.s, me = this.me;
@@ -306,6 +354,25 @@
       }
       if (me !== null) out.push(h('div.controls', btn('🏳 Abandonar', () => modal((b, close) => b.append(h('h2', 'Abandonar o jogo?'), h('p.muted', 'Sua dupla perde a partida.'),
         h('div.row', h('button.btn', { type: 'button', onclick: close }, 'Cancelar'), h('button.btn.primary', { type: 'button', onclick: () => { close(); this.act({ type: 'bankrupt' }); } }, 'Abandonar')))), '.small.danger')));
+      box.replaceChildren(...out);
+    },
+    // Vazas da mão atual (e o resumo da mão anterior), com as cartas de cada um
+    renderRounds() {
+      const s = this.s, box = $('#tRounds');
+      if (!s) return box.replaceChildren(h('p.muted', 'O jogo ainda não começou.'));
+      const nm = c => (c ? Truco.cardName(c) : '🂠');
+      const done = t => t.team === -1 || t.team >= 0;
+      const trickRow = (t, i, man) => h('div.tr-row' + (t.team === -1 ? '.tie' : !done(t) ? '.cur' : this.me === null || t.team === this.myTeam() ? '.win' : '.lose'),
+        h('b.tr-n', ORD[i]),
+        h('div.tr-cards', t.plays.map(pl => h('span.tr-c' + (t.team >= 0 && pl.seat === t.seat ? '.best' : '') + (pl.card && pl.card[0] === man ? '.man' : '') + (pl.card && 'hd'.includes(pl.card[1]) ? '.red' : ''),
+          h('small', s.players[pl.seat].name), nm(pl.card)))),
+        h('span.tr-w', t.team === -1 ? 'empate' : !done(t) ? 'jogando' : this.teamLabel(t.team)));
+      const rows = s.tricks.map((t, i) => trickRow(t, i, s.manilha));
+      if (s.plays.length && s.phase !== 'over') rows.push(trickRow({ plays: s.plays, team: null }, s.tricks.length, s.manilha));
+      const out = [h('div.tr-head', h('span', `Mão ${s.handN} · vale ${s.value}`), h('span.muted', `manilha ${s.manilha}`)),
+        rows.length ? h('div.tr-list', rows) : h('p.muted', 'Nenhuma carta jogada nesta mão ainda.')];
+      if (s.last) out.push(h('div.tr-last' + (this.me === null ? '' : s.last.team === this.myTeam() ? '.win' : '.lose'),
+        h('b', `Mão anterior: ${this.teamLabel(s.last.team)} +${s.last.pts}`), h('small', s.last.why)));
       box.replaceChildren(...out);
     },
     renderPlayers() {

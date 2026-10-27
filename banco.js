@@ -81,6 +81,16 @@ function open(dir) {
       atualizada_em INTEGER,
       dados         TEXT    -- JSON com o estado completo da mesa de Magnata
     );
+    CREATE TABLE IF NOT EXISTS sugestoes (
+      id            TEXT PRIMARY KEY,
+      titulo        TEXT,
+      autor_id      TEXT,
+      status        TEXT,
+      votos         INTEGER,
+      criada_em     INTEGER,
+      atualizada_em INTEGER,
+      dados         TEXT    -- JSON com a sugestão completa (descrição, votos, comentários, resposta)
+    );
   `);
   // Colunas novas em bancos criados por versões anteriores
   const cols = new Set(sql.prepare('PRAGMA table_info(perfis)').all().map(c => c.name));
@@ -100,6 +110,9 @@ function open(dir) {
     salaUpsert: sql.prepare('INSERT INTO salas (id, nome, jogo, atualizada_em, dados) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET nome=excluded.nome, atualizada_em=excluded.atualizada_em, dados=excluded.dados'),
     magnataAll: sql.prepare('SELECT dados FROM salas_magnata'),
     magnataUpsert: sql.prepare('INSERT INTO salas_magnata (id, nome, atualizada_em, dados) VALUES (?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET nome=excluded.nome, atualizada_em=excluded.atualizada_em, dados=excluded.dados'),
+    sugestoesAll: sql.prepare('SELECT dados FROM sugestoes'),
+    sugestaoUpsert: sql.prepare(`INSERT INTO sugestoes (id, titulo, autor_id, status, votos, criada_em, atualizada_em, dados) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET titulo=excluded.titulo, status=excluded.status, votos=excluded.votos, atualizada_em=excluded.atualizada_em, dados=excluded.dados`),
     partidasAll: sql.prepare('SELECT dados FROM partidas ORDER BY terminou_em'),
     partidaInsert: sql.prepare(`INSERT OR IGNORE INTO partidas (id, jogo, brancas_id, brancas_nome, pretas_id, pretas_nome, vencedor, motivo, ranqueada, tempo, lances_qtd, terminou_em, dados)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
@@ -132,7 +145,9 @@ function open(dir) {
     const magnata = {};
     for (const r of q.magnataAll.all()) { const s = P(r.dados, null); if (s && s.id) magnata[s.id] = s; }
     const games = q.partidasAll.all().map(r => P(r.dados, null)).filter(Boolean);
-    return { profiles, sessions, rooms, games, magnata };
+    const suggestions = {};
+    for (const r of q.sugestoesAll.all()) { const s = P(r.dados, null); if (s && s.id) suggestions[s.id] = s; }
+    return { profiles, sessions, rooms, games, magnata, suggestions };
   }
 
   /* ---------- Gravação ---------- */
@@ -164,6 +179,12 @@ function open(dir) {
       prune('salas_magnata', 'id', new Set(Object.keys(rooms)));
     });
   }
+  function saveSuggestions(list) {
+    tx(() => {
+      for (const s of Object.values(list)) q.sugestaoUpsert.run(s.id, s.title, s.author, s.status, s.votes.length, s.created, s.updated || s.created, J(s));
+      prune('sugestoes', 'id', new Set(Object.keys(list)));
+    });
+  }
   function saveGames(games) {
     tx(() => {
       for (const g of games) {
@@ -187,7 +208,7 @@ function open(dir) {
     return Object.keys(data.profiles).length;
   }
 
-  return { file, sql, loadAll, saveProfiles, saveSessions, saveRooms, saveMagnata, saveGames, migrateJson, close: () => sql.close() };
+  return { file, sql, loadAll, saveProfiles, saveSessions, saveRooms, saveMagnata, saveSuggestions, saveGames, migrateJson, close: () => sql.close() };
 }
 
 module.exports = { open };

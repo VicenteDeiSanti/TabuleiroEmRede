@@ -58,3 +58,73 @@
 2026-10-26T19:09:26.018Z ADMIN 192.168.56.1 Vicente: fechou a sala 332b00
 2026-10-26T19:14:28.080Z CONEXAO_LENTA 10.109.71.6 requisição incompleta por 10 s
 2026-10-26T19:14:48.091Z CADASTRO 10.109.71.6 perfil "Eduarda"
+2026-10-27T16:07:04.095Z LOGIN_FALHOU 10.109.71.9 perfil "isabelle"
+2026-10-27T16:07:04.774Z LOGIN_FALHOU 10.109.71.9 perfil "isabelle"
+2026-10-27T16:07:11.364Z LOGIN_FALHOU 10.109.71.9 perfil "isabelle"
+2026-10-27T16:07:11.936Z LOGIN_FALHOU 10.109.71.9 perfil "isabelle"
+2026-10-27T16:07:41.383Z CONEXAO_LENTA 10.109.71.6 requisição incompleta por 10 s
+2026-10-27T16:09:48.468Z CADASTRO 10.109.71.12 perfil "anilima"
+2026-10-27T16:10:26.219Z LOGIN_FALHOU 10.109.71.17 perfil "jonatas"
+2026-10-27T16:10:30.617Z CADASTRO 10.109.71.10 perfil "Ana Silva"
+2026-10-27T16:11:20.601Z CONEXAO_LENTA 10.109.71.5 requisição incompleta por 10 s
+2026-10-27T16:11:40.128Z CADASTRO 10.109.71.5 perfil "hyuki"
+2026-10-27T16:28:42.608Z CONEXAO_LENTA 10.109.71.16 requisição incompleta por 10 s
+2026-10-27T16:28:42.713Z CONEXAO_LENTA 10.109.71.17 requisição incompleta por 10 s
+2026-10-27T16:30:00.828Z ADMIN 127.0.0.1 Vicente: aviso "Boa tarde, para manter o site em funconamento manda um pix de 2 zao ai PIX: 19997960366"
+2026-10-27T16:30:17.939Z ADMIN 127.0.0.1 Vicente: aviso "Boa tarde, para manter o site em funconamento manda um pix de 2 zao ai PIX: 19997960366"
+2026-10-27T16:30:18.682Z ADMIN 127.0.0.1 Vicente: aviso "Boa tarde, para manter o site em funconamento manda um pix de 2 zao ai PIX: 19997960366"
+2026-10-27T16:30:21.762Z ADMIN 127.0.0.1 Vicente: aviso "Boa tarde, para manter o site em funconamento manda um pix de 2 zao ai PIX: 19997960366"
+2026-10-27T16:30:22.587Z ADMIN 127.0.0.1 Vicente: aviso "Boa tarde, para manter o site em funconamento manda um pix de 2 zao ai PIX: 19997960366"
+2026-10-27T16:30:25.987Z ADMIN 127.0.0.1 Vicente: aviso removido
+2026-10-27T16:30:28.707Z ADMIN 127.0.0.1 Vicente: aviso "Boa tarde, para manter o site em funconamento manda um pix de 2 zao ai PIX: 19997960366"
+2026-10-27T16:30:40.267Z ADMIN 127.0.0.1 Vicente: fechou a sala e8bd77
+2026-10-27T16:30:41.404Z ADMIN 127.0.0.1 Vicente: fechou a sala b00e86
+2026-10-27T16:30:42.948Z ADMIN 127.0.0.1 Vicente: fechou a sala 496854
+2026-10-27T16:30:45.004Z ADMIN 127.0.0.1 Vicente: fechou a sala 446894
+2026-10-27T16:31:13.467Z LIMITE 10.109.71.17 chat
+2026-10-27T16:36:24.091Z ADMIN 127.0.0.1 Vicente: aviso removido
+2026-10-27T16:37:26.053Z LIMITE 10.109.71.17 chat
+2026-10-27T16:43:34.053Z CONEXAO_LENTA 10.109.71.21 requisição incompleta por 10 s
+2026-10-27T16:53:43.628Z CONEXAO_LENTA 10.109.71.5 requisição incompleta por 10 s
+2026-10-27T16:55:17.633Z CONEXAO_LENTA 10.109.71.5 requisição incompleta por 10 s
+2026-10-27T16:55:17.903Z CONEXAO_LENTA 10.109.71.9 requisição incompleta por 10 s
+2026-10-27T16:57:17.895Z CONEXAO_LENTA 10.109.71.9 requisição incompleta por 10 s
+2026-10-27T16:58:17.897Z CONEXAO_LENTA 10.109.71.9 requisição incompleta por 10 s
+2026-10-27T16:59:17.342Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:00:13.536Z CONEXAO_LENTA 10.109.71.7 requisição incompleta por 10 s
+2026-10-27T17:05:38.683Z CONEXAO_LENTA 10.109.71.17 requisição incompleta por 10 s
+2026-10-27T17:05:38.684Z CONEXAO_LENTA 10.109.71.7 requisição incompleta por 10 s
+2026-10-27T17:23:14.906Z CONEXAO_LENTA 10.109.71.7 requisição incompleta por 10 s
+2026-10-27T17:24:17.354Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:25:17.371Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:27:17.354Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:28:17.362Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:30:17.356Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:32:17.346Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:33:17.355Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:34:17.364Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:36:17.360Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:37:17.367Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:39:17.358Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T17:41:17.353Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:00:17.350Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:01:17.352Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:02:17.359Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:04:17.349Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:05:17.362Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:09:41.090Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:11:17.352Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:12:17.352Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:14:17.361Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:27:17.356Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:29:17.366Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:31:17.345Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:32:17.354Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:33:17.354Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:35:17.355Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:37:17.346Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T18:38:17.361Z CONEXAO_LENTA 127.0.0.1 requisição incompleta por 10 s
+2026-10-27T19:42:37.831Z CONEXAO_LENTA 10.109.71.6 requisição incompleta por 10 s
+2026-10-27T19:49:03.354Z CONEXAO_LENTA 10.109.71.5 requisição incompleta por 10 s
+2026-10-27T19:51:03.331Z CONEXAO_LENTA 10.109.71.5 requisição incompleta por 10 s
+2026-10-27T19:55:24.942Z CADASTRO 10.109.71.5 perfil "Hyuki Viciada"
